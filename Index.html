@@ -1,0 +1,1200 @@
+<html><head>
+<title>BackTick</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+    background-color: #1e1e1e;
+    color: #ffffff;
+  }
+  .header {
+    background-color: #4a6cd4;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  .main-container {
+    display: flex;
+    height: calc(100% - 50px);
+  }
+  .sidebar {
+    width: 220px;
+    background-color: #252526;
+    padding: 10px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace {
+    flex-grow: 1;
+    background-color: #1e1e1e;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .blocks-and-stage {
+    display: flex;
+    flex-grow: 1;
+  }
+  .blocks-area {
+    flex-grow: 1;
+    background-color: #2d2d30;
+    border: 2px solid #3e3e42;
+    border-radius: 5px;
+    min-height: 400px;
+    margin-right: 20px;
+    padding: 10px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .stage {
+    width: 480px;
+    height: 360px;
+    background-color: #ffffff;
+    border: 2px solid #3e3e42;
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sprite {
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    border-radius: 50%;
+    position: absolute;
+    cursor: move;
+    user-select: none;
+    touch-action: none;
+  }
+  .speech-bubble {
+    position: absolute;
+    background-color: white;
+    border-radius: 10px;
+    padding: 5px 10px;
+    color: black;
+    font-size: 12px;
+    max-width: 150px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+    display: none;
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: white transparent;
+    transform: translateX(-50%);
+  }
+  .categories-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .category {
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 11px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 20px;
+  }
+  .category:hover {
+    opacity: 0.8;
+  }
+  .block {
+    color: white;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .block:hover {
+    opacity: 0.9;
+  }
+  .workspace-block {
+    color: white;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    position: absolute;
+    touch-action: none;
+    cursor: move;
+  }
+  .input {
+    background-color: white;
+    color: black;
+    border: none;
+    border-radius: 10px;
+    padding: 2px 5px;
+    margin: 0 5px;
+    width: 30px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .dropdown {
+    background-color: #5173df;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 2px 5px;
+    margin: 0 5px;
+    font-size: 12px;
+  }
+  .reporter {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 10px;
+    padding: 0 5px;
+    margin: 0 2px;
+    height: 24px;
+    font-size: 12px;
+    cursor: move;
+  }
+  #Motion { background-color: #4C97FF; }
+  #Looks { background-color: #9966FF; }
+  #Sound { background-color: #CF63CF; }
+  #Pen { background-color: #0FBD8C; }
+  #Control { background-color: #FFAB19; }
+  #Sensing { background-color: #5CB1D6; }
+  #Operators { background-color: #59C059; }
+  #Variables { background-color: #FF8C1A; }
+  #blocks-container {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  .run-button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  .console {
+    background-color: #1e1e1e;
+    border: 1px solid #3e3e42;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    font-family: monospace;
+    height: 100px;
+    overflow-y: auto;
+  }
+  .green-flag {
+    width: 16px;
+    height: 16px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+  }
+  .sprite-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .sprite-thumbnail {
+    width: 60px;
+    height: 60px;
+    background-color: #3e3e42;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .sprite-thumbnail.selected {
+    border: 2px solid #4CAF50;
+  }
+  .add-sprite-button {
+    width: 60px;
+    height: 60px;
+    background-color: #4a6cd4;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 24px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">BackTick</div>
+  </div>
+  
+  <div class="main-container">
+    <div class="sidebar">
+      <div class="categories-container">
+        <div id="Motion" class="category">Motion</div>
+        <div id="Looks" class="category">Looks</div>
+        <div id="Sound" class="category">Sound</div>
+        <div id="Pen" class="category">Pen</div>
+        <div id="Control" class="category">Control</div>
+        <div id="Sensing" class="category">Sensing</div>
+        <div id="Operators" class="category">Operators</div>
+        <div id="Variables" class="category">Variables</div>
+      </div>
+      <div id="blocks-container"></div>
+    </div>
+    
+    <div class="workspace">
+      <div class="sprite-selector" id="sprite-selector">
+        <div class="add-sprite-button" id="add-sprite-button">+</div>
+      </div>
+      <div class="blocks-and-stage">
+        <div id="blocks-area" class="blocks-area"></div>
+        <div id="stage" class="stage"></div>
+      </div>
+      <button id="run-button" class="run-button">Run</button>
+      <div id="console" class="console"></div>
+    </div>
+  </div>
+
+  <script>
+    const blocksByCategory = {
+      Control: [
+        { text: "when green flag clicked", color: "#FFAB19", inputs: [], opcode: "event_whenflagclicked", undeletable: true },
+        { text: "wait [] seconds", color: "#FFAB19", inputs: [{ type: "number", default: 1 }], opcode: "control_wait" },
+        { text: "repeat []", color: "#FFAB19", inputs: [{ type: "number", default: 10 }], opcode: "control_repeat" },
+      ],
+      Motion: [
+        { text: "move [] steps", color: "#4C97FF", inputs: [{ type: "number", default: 10 }], opcode: "motion_movesteps" },
+        { text: "turn ↻ [] degrees", color: "#4C97FF", inputs: [{ type: "number", default: 15 }], opcode: "motion_turnright" },
+        { text: "turn ↺ [] degrees", color: "#4C97FF", inputs: [{ type: "number", default: 15 }], opcode: "motion_turnleft" },
+        { text: "point in direction []", color: "#4C97FF", inputs: [{ type: "number", default: 90 }], opcode: "motion_pointindirection" },
+        { text: "go to x: [] y: []", color: "#4C97FF", inputs: [{ type: "number", default: 0 }, { type: "number", default: 0 }], opcode: "motion_gotoxy" },
+        { text: "change x by []", color: "#4C97FF", inputs: [{ type: "number", default: 10 }], opcode: "motion_changexby" },
+        { text: "set x to []", color: "#4C97FF", inputs: [{ type: "number", default: 0 }], opcode: "motion_setx" },
+        { text: "change y by []", color: "#4C97FF", inputs: [{ type: "number", default: 10 }], opcode: "motion_changeyby" },
+        { text: "set y to []", color: "#4C97FF", inputs: [{ type: "number", default: 0 }], opcode: "motion_sety" },
+      ],
+      Looks: [
+        { text: "say [] for [] seconds", color: "#9966FF", inputs: [{ type: "text", default: "Hello!" }, { type: "number", default: 2 }], opcode: "looks_sayforsecs" },
+        { text: "change size by []", color: "#9966FF", inputs: [{ type: "number", default: 10 }], opcode: "looks_changesizeby" },
+        { text: "set size to []%", color: "#9966FF", inputs: [{ type: "number", default: 100 }], opcode: "looks_setsizeto" },
+      ],
+      Sound: [
+        { text: "play sound []", color: "#CF63CF", inputs: [{ type: "dropdown", options: ["Meow", "Pop", "Boing"] }], opcode: "sound_playuntildone" },
+        { text: "stop all sounds", color: "#CF63CF", inputs: [], opcode: "sound_stopallsounds" },
+      ],
+      Pen: [
+        { text: "clear", color: "#0FBD8C", inputs: [], opcode: "pen_clear" },
+        { text: "pen down", color: "#0FBD8C", inputs: [], opcode: "pen_pendown" },
+        { text: "pen up", color: "#0FBD8C", inputs: [], opcode: "pen_penup" },
+        { text: "set pen color to []", color: "#0FBD8C", inputs: [{ type: "color", default: "#000000" }], opcode: "pen_setcolor" },
+        { text: "change pen size by []", color: "#0FBD8C", inputs: [{ type: "number", default: 1 }], opcode: "pen_changesize" },
+        { text: "set pen size to []", color: "#0FBD8C", inputs: [{ type: "number", default: 1 }], opcode: "pen_setsize" },
+      ],
+      Sensing: [
+        { text: "ask [] and wait", color: "#5CB1D6", inputs: [{ type: "text", default: "What's your name?" }], opcode: "sensing_askandwait" },
+        { text: "mouse x", color: "#5CB1D6", inputs: [], opcode: "sensing_mousex", reporter: true },
+        { text: "mouse y", color: "#5CB1D6", inputs: [], opcode: "sensing_mousey", reporter: true },
+        { text: "touching []?", color: "#5CB1D6", inputs: [{ type: "dropdown", options: ["mouse-pointer", "edge"] }], opcode: "sensing_touchingobject", reporter: true },
+        { text: "distance to []", color: "#5CB1D6", inputs: [{ type: "dropdown", options: ["mouse-pointer"] }], opcode: "sensing_distanceto", reporter: true },
+      ],
+      Operators: [
+        { text: "[] + []", color: "#59C059", inputs: [{ type: "number", default: 0 }, { type: "number", default: 0 }], opcode: "operator_add", reporter: true },
+        { text: "[] - []", color: "#59C059", inputs: [{ type: "number", default: 0 }, { type: "number", default: 0 }], opcode: "operator_subtract", reporter: true },
+        { text: "[] * []", color: "#59C059", inputs: [{ type: "number", default: 0 }, { type: "number", default: 0 }], opcode: "operator_multiply", reporter: true },
+        { text: "[] / []", color: "#59C059", inputs: [{ type: "number", default: 1 }, { type: "number", default: 1 }], opcode: "operator_divide", reporter: true },
+        { text: "pick random [] to []", color: "#59C059", inputs: [{ type: "number", default: 1 }, { type: "number", default: 10 }], opcode: "operator_random", reporter: true },
+      ],
+      Variables: [
+        { text: "set [] to []", color: "#FF8C1A", inputs: [{ type: "text", default: "my variable" }, { type: "number", default: 0 }], opcode: "data_setvariableto" },
+        { text: "change [] by []", color: "#FF8C1A", inputs: [{ type: "text", default: "my variable" }, { type: "number", default: 1 }], opcode: "data_changevariableby" },
+        { text: "show variable []", color: "#FF8C1A", inputs: [{ type: "text", default: "my variable" }], opcode: "data_showvariable" },
+        { text: "hide variable []", color: "#FF8C1A", inputs: [{ type: "text", default: "my variable" }], opcode: "data_hidevariable" },
+      ],
+    };
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      const blocksArea = document.getElementById('blocks-area');
+      const blocksContainer = document.getElementById('blocks-container');
+      const categories = document.querySelectorAll('.category');
+      const runButton = document.getElementById('run-button');
+      const consoleOutput = document.getElementById('console');
+      const stage = document.getElementById('stage');
+      const spriteSelectorContainer = document.getElementById('sprite-selector');
+      const addSpriteButton = document.getElementById('add-sprite-button');
+
+      let sprites = [];
+      let selectedSprite = null;
+      let globalVariables = {};
+
+      function createSprite(x, y) {
+        const sprite = document.createElement('div');
+        sprite.className = 'sprite';
+        sprite.style.left = `${x}px`;
+        sprite.style.top = `${y}px`;
+        sprite.style.backgroundColor = getRandomColor();
+        
+        const speechBubble = document.createElement('div');
+        speechBubble.className = 'speech-bubble';
+        sprite.appendChild(speechBubble);
+
+        stage.appendChild(sprite);
+
+        const spriteData = {
+          element: sprite,
+          speechBubble: speechBubble,
+          x: x,
+          y: y,
+          direction: 90,
+          size: 100,
+          penDown: false,
+          penColor: "#000000",
+          penSize: 1,
+          blocks: [],
+          variables: {},
+          scripts: []
+        };
+
+        sprites.push(spriteData);
+        createSpriteThumbnail(spriteData);
+        makeDraggable(sprite, spriteData);
+
+        return spriteData;
+      }
+
+      function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+
+      function createSpriteThumbnail(spriteData) {
+        const thumbnail = document.createElement('div');
+        thumbnail.className = 'sprite-thumbnail';
+        thumbnail.style.backgroundColor = spriteData.element.style.backgroundColor;
+        thumbnail.addEventListener('click', () => selectSprite(spriteData));
+        spriteSelectorContainer.insertBefore(thumbnail, addSpriteButton);
+      }
+
+      function selectSprite(spriteData) {
+        if (selectedSprite) {
+          selectedSprite.element.style.border = 'none';
+          saveSpriteBlocks(selectedSprite);
+        }
+        selectedSprite = spriteData;
+        selectedSprite.element.style.border = '2px solid yellow';
+        loadSpriteBlocks(selectedSprite);
+        displayBlocks('Motion');
+      }
+
+      function saveSpriteBlocks(spriteData) {
+        spriteData.blocks = Array.from(blocksArea.children).map(block => ({
+          opcode: block.dataset.opcode,
+          inputs: Array.from(block.querySelectorAll('.input-wrapper, select')).map(input => {
+            if (input.tagName === 'SELECT') {
+              return { type: 'dropdown', value: input.value };
+            } else {
+              const innerBlock = input.querySelector('.workspace-block, .reporter');
+              if (innerBlock) {
+                return { type: 'block', value: innerBlock.dataset.opcode };
+              } else {
+                return { type: 'value', value: input.querySelector('input').value };
+              }
+            }
+          }),
+          x: parseInt(block.style.left, 10) || 0,
+          y: parseInt(block.style.top, 10) || 0
+        }));
+      }
+
+      function loadSpriteBlocks(spriteData) {
+        blocksArea.innerHTML = '';
+        spriteData.blocks.forEach(blockData => {
+          const block = createBlock(blocksByCategory[getBlockCategory(blockData.opcode)].find(b => b.opcode === blockData.opcode), true);
+          block.style.left = `${blockData.x}px`;
+          block.style.top = `${blockData.y}px`;
+          blockData.inputs.forEach((input, index) => {
+            const inputElement = block.querySelectorAll('.input-wrapper, select')[index];
+            if (input.type === 'dropdown') {
+              inputElement.value = input.value;
+            } else if (input.type === 'block') {
+              const innerBlock = createBlock(blocksByCategory[getBlockCategory(input.value)].find(b => b.opcode === input.value), true);
+              inputElement.innerHTML = '';
+              inputElement.appendChild(innerBlock);
+            } else {
+              inputElement.querySelector('input').value = input.value;
+            }
+          });
+          blocksArea.appendChild(block);
+        });
+      }
+
+      function getBlockCategory(opcode) {
+        for (const category in blocksByCategory) {
+          if (blocksByCategory[category].some(block => block.opcode === opcode)) {
+            return category;
+          }
+        }
+        return null;
+      }
+
+      function makeDraggable(element, spriteData) {
+        let isDragging = false;
+        let startX, startY;
+
+        element.addEventListener('mousedown', startDragging);
+        element.addEventListener('touchstart', startDragging);
+
+        function startDragging(e) {
+          isDragging = true;
+          e.preventDefault();
+          startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+          startY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+          
+          document.addEventListener('mousemove', drag);
+          document.addEventListener('touchmove', drag);
+          document.addEventListener('mouseup', stopDragging);
+          document.addEventListener('touchend', stopDragging);
+        }
+
+        function drag(e) {
+          if (!isDragging) return;
+          e.preventDefault();
+          
+          const clientX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+          const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
+          
+          const dx = clientX - startX;
+          const dy = clientY - startY;
+          
+          spriteData.x += dx;
+          spriteData.y += dy;
+          
+          updateSpritePosition(spriteData);
+          
+          startX = clientX;
+          startY = clientY;
+        }
+
+        function stopDragging() {
+          isDragging = false;
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('touchmove', drag);
+          document.removeEventListener('mouseup', stopDragging);
+          document.removeEventListener('touchend', stopDragging);
+        }
+      }
+
+      function updateSpritePosition(spriteData) {
+        spriteData.element.style.left = `${spriteData.x}px`;
+        spriteData.element.style.top = `${spriteData.y}px`;
+      }
+
+      addSpriteButton.addEventListener('click', () => {
+        const newSprite = createSprite(Math.random() * 400, Math.random() * 300);
+        selectSprite(newSprite);
+      });
+
+      function createInput(input, blockColor) {
+        if (input.type === "number" || input.type === "text") {
+          const inputElement = document.createElement('input');
+          inputElement.type = input.type;
+          inputElement.value = input.default;
+          inputElement.className = 'input';
+          inputElement.addEventListener('click', (e) => e.stopPropagation());
+          inputElement.addEventListener('mousedown', (e) => e.stopPropagation());
+          inputElement.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'input-wrapper';
+          wrapper.appendChild(inputElement);
+          wrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+
+          return wrapper;
+        } else if (input.type === "dropdown") {
+          const selectElement = document.createElement('select');
+          selectElement.className = 'dropdown';
+          selectElement.style.backgroundColor = blockColor;
+          input.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            selectElement.appendChild(optionElement);
+          });
+          return selectElement;
+        } else if (input.type === "color") {
+          const inputElement = document.createElement('input');
+          inputElement.type = 'color';
+          inputElement.value = input.default;
+          inputElement.className = 'input';
+          inputElement.addEventListener('click', (e) => e.stopPropagation());
+          inputElement.addEventListener('mousedown', (e) => e.stopPropagation());
+          inputElement.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'input-wrapper';
+          wrapper.appendChild(inputElement);
+          wrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+
+          return wrapper;
+        }
+      }
+
+      function createBlock(block, isWorkspace = false) {
+        const blockElement = document.createElement('div');
+        blockElement.className = isWorkspace ? 'workspace-block' : 'block';
+        blockElement.style.backgroundColor = block.color;
+        blockElement.dataset.opcode = block.opcode;
+        blockElement.dataset.reporter = block.reporter ? 'true' : 'false';
+        blockElement.dataset.undeletable = block.undeletable ? 'true' : 'false';
+
+        if (block.reporter) {
+          blockElement.classList.add('reporter');
+        }
+
+        if (block.opcode === 'event_whenflagclicked') {
+          const flagIcon = document.createElement('span');
+          flagIcon.className = 'green-flag';
+          blockElement.appendChild(flagIcon);
+        }
+
+        const parts = block.text.split(/(\[])/);
+        let inputIndex = 0;
+        parts.forEach(part => {
+          if (part === '[]' && inputIndex < block.inputs.length) {
+            blockElement.appendChild(createInput(block.inputs[inputIndex], block.color));
+            inputIndex++;
+          } else {
+            blockElement.appendChild(document.createTextNode(part));
+          }
+        });
+
+        if (isWorkspace) {
+          blockElement.addEventListener('mousedown', startDragging);
+          blockElement.addEventListener('touchstart', startDragging, { passive: false });
+        }
+
+        return blockElement;
+      }
+
+      function displayBlocks(category) {
+        blocksContainer.innerHTML = '';
+        blocksByCategory[category].forEach(block => {
+          const blockElement = createBlock(block);
+          blockElement.addEventListener('mousedown', startDragging);
+          blockElement.addEventListener('touchstart', startDragging, { passive: false });
+          blocksContainer.appendChild(blockElement);
+        });
+      }
+
+      categories.forEach(category => {
+        category.addEventListener('click', () => displayBlocks(category.id));
+      });
+
+      // Display Control blocks by default
+      displayBlocks('Control');
+
+      let draggedElement = null;
+      let startX, startY;
+      let offsetX, offsetY;
+
+      function startDragging(e) {
+        e.preventDefault();
+        if (e.type === 'mousedown') {
+          startX = e.clientX;
+          startY = e.clientY;
+        } else if (e.type === 'touchstart') {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }
+
+        draggedElement = this.closest('.block, .workspace-block, .reporter');
+        if (!draggedElement) return;
+
+        const rect = draggedElement.getBoundingClientRect();
+        offsetX = startX - rect.left;
+        offsetY = startY - rect.top;
+
+        if (draggedElement.classList.contains('block')) {
+          draggedElement = draggedElement.cloneNode(true);
+          draggedElement.classList.remove('block');
+          draggedElement.classList.add('workspace-block');
+          blocksArea.appendChild(draggedElement);
+        }
+
+        draggedElement.style.position = 'absolute';
+        draggedElement.style.zIndex = 1000;
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('mouseup', stopDragging);
+        document.addEventListener('touchend', stopDragging);
+      }
+
+      function onDrag(e) {
+        e.preventDefault();
+        if (!draggedElement) return;
+
+        let clientX, clientY;
+        if (e.type === 'mousemove') {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        } else if (e.type === 'touchmove') {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+
+        const blocksAreaRect = blocksArea.getBoundingClientRect();
+        let x = clientX - offsetX - blocksAreaRect.left;
+        let y = clientY - offsetY - blocksAreaRect.top;
+        
+        // Constrain the block within the workspace
+        x = Math.max(0, Math.min(x, blocksAreaRect.width - draggedElement.offsetWidth));
+        y = Math.max(0, Math.min(y, blocksAreaRect.height - draggedElement.offsetHeight));
+        
+        draggedElement.style.left = `${x}px`;
+        draggedElement.style.top = `${y}px`;
+
+        // Snap to nearby blocks
+        const blocks = blocksArea.querySelectorAll('.workspace-block');
+        let minDistance = Infinity;
+        let snapTarget = null;
+
+        blocks.forEach(block => {
+          if (block !== draggedElement) {
+            const rect1 = draggedElement.getBoundingClientRect();
+            const rect2 = block.getBoundingClientRect();
+            const distance = Math.abs(rect1.bottom - rect2.top);
+
+            if (distance < minDistance && distance < 20) {
+              minDistance = distance;
+              snapTarget = block;
+            }
+          }
+        });
+
+        if (snapTarget) {
+          const snapRect = snapTarget.getBoundingClientRect();
+          draggedElement.style.top = `${snapRect.bottom - blocksAreaRect.top}px`;
+        }
+
+        // Check for input drop targets
+        const inputs = blocksArea.querySelectorAll('.input-wrapper');
+        inputs.forEach(input => {
+          const inputRect = input.getBoundingClientRect();
+          if (
+            clientX >= inputRect.left &&
+            clientX <= inputRect.right &&
+            clientY >= inputRect.top &&
+            clientY <= inputRect.bottom &&
+            draggedElement.classList.contains('reporter')
+          ) {
+            input.style.backgroundColor = 'yellow';
+          } else {
+            input.style.backgroundColor = '';
+          }
+        });
+      }
+
+      function stopDragging(e) {
+        if (!draggedElement) return;
+
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('mouseup', stopDragging);
+        document.removeEventListener('touchend', stopDragging);
+
+        const blocksAreaRect = blocksArea.getBoundingClientRect();
+        const draggedRect = draggedElement.getBoundingClientRect();
+
+        if (
+          draggedRect.left >= blocksAreaRect.left &&
+          draggedRect.right <= blocksAreaRect.right &&
+          draggedRect.top >= blocksAreaRect.top &&
+          draggedRect.bottom <= blocksAreaRect.bottom
+        ) {
+          // Block is dropped inside the workspace
+          draggedElement.style.position = 'absolute';
+          draggedElement.style.left = `${draggedRect.left - blocksAreaRect.left}px`;
+          draggedElement.style.top = `${draggedRect.top - blocksAreaRect.top}px`;
+
+          // Check if the reporter is dropped onto an input
+          if (draggedElement.classList.contains('reporter')) {
+            const inputs = blocksArea.querySelectorAll('.input-wrapper');
+            inputs.forEach(input => {
+              const inputRect = input.getBoundingClientRect();
+              if (
+                draggedRect.left >= inputRect.left &&
+                draggedRect.right <= inputRect.right &&
+                draggedRect.top >= inputRect.top &&
+                draggedRect.bottom <= inputRect.bottom
+              ) {
+                input.innerHTML = '';
+                input.appendChild(draggedElement);
+                draggedElement.style.position = 'static';
+                draggedElement.style.left = '';
+                draggedElement.style.top = '';
+              }
+            });
+          }
+        } else {
+          // Block is dropped outside the workspace
+          draggedElement.remove();
+        }
+
+        // Reset input backgrounds
+        const inputs = blocksArea.querySelectorAll('.input-wrapper');
+        inputs.forEach(input => {
+          input.style.backgroundColor = '';
+        });
+
+        draggedElement = null;
+      }
+
+      runButton.addEventListener('click', function() {
+        if (selectedSprite) {
+          const ast = buildAST();
+          consoleOutput.innerHTML = '';
+          consoleOutput.innerHTML += 'AST built. Interpreting...<br>';
+          interpretAST(ast);
+        } else {
+          consoleOutput.innerHTML = 'Please select a sprite first.<br>';
+        }
+      });
+
+      function buildAST() {
+        const blocks = blocksArea.querySelectorAll('.workspace-block');
+        const ast = {
+          _blocks: {},
+          _scripts: []
+        };
+
+        blocks.forEach((block, index) => {
+          const id = `block_${index}`;
+          const opcode = block.dataset.opcode;
+          const inputs = {};
+          const fields = {};
+
+          block.querySelectorAll('.input-wrapper, select').forEach((input, inputIndex) => {
+            if (input.tagName === 'SELECT') {
+              fields[`FIELD_${inputIndex}`] = {
+                name: `FIELD_${inputIndex}`,
+                value: input.value
+              };
+            } else {
+              const innerBlock = input.querySelector('.workspace-block, .reporter');
+              if (innerBlock) {
+                inputs[`INPUT_${inputIndex}`] = {
+                  name: `INPUT_${inputIndex}`,
+                  block: buildBlockAST(innerBlock)
+                };
+              } else {
+                inputs[`INPUT_${inputIndex}`] = {
+                  name: `INPUT_${inputIndex}`,
+                  value: input.querySelector('input').value
+                };
+              }
+            }
+          });
+
+          ast._blocks[id] = {
+            id,
+            opcode,
+            inputs,
+            fields,
+            next: index < blocks.length - 1 ? `block_${index + 1}` : null,
+            topLevel: index === 0,
+            parent: index > 0 ? `block_${index - 1}` : null,
+            shadow: false,
+            x: parseInt(block.style.left, 10) || 0,
+            y: parseInt(block.style.top, 10) || 0
+          };
+
+          if (opcode === 'event_whenflagclicked') {
+            ast._scripts.push(id);
+          }
+        });
+
+        consoleOutput.innerHTML += 'AST built: ' + JSON.stringify(ast, null, 2) + '<br>';
+        return ast;
+      }
+
+      function buildBlockAST(block) {
+        const opcode = block.dataset.opcode;
+        const inputs = {};
+        const fields = {};
+
+        block.querySelectorAll('.input-wrapper, select').forEach((input, inputIndex) => {
+          if (input.tagName === 'SELECT') {
+            fields[`FIELD_${inputIndex}`] = {
+              name: `FIELD_${inputIndex}`,
+              value: input.value
+            };
+          } else {
+            const innerBlock = input.querySelector('.workspace-block, .reporter');
+            if (innerBlock) {
+              inputs[`INPUT_${inputIndex}`] = {
+                name: `INPUT_${inputIndex}`,
+                block: buildBlockAST(innerBlock)
+              };
+            } else {
+              inputs[`INPUT_${inputIndex}`] = {
+                name: `INPUT_${inputIndex}`,
+                value: input.querySelector('input').value
+              };
+            }
+          }
+        });
+
+        return {
+          opcode,
+          inputs,
+          fields
+        };
+      }
+
+      function interpretAST(ast) {
+        ast._scripts.forEach(scriptId => {
+          let currentBlockId = scriptId;
+          while (currentBlockId) {
+            const block = ast._blocks[currentBlockId];
+            executeBlock(block);
+            currentBlockId = block.next;
+          }
+        });
+      }
+
+      function executeBlock(block) {
+        consoleOutput.innerHTML += `Executing block: ${block.opcode}<br>`;
+        
+        switch (block.opcode) {
+          case 'event_whenflagclicked':
+            // This is just the starting point, no action needed
+            break;
+          case 'motion_movesteps':
+            const steps = getInputValue(block.inputs.INPUT_0);
+            moveSprite(steps);
+            break;
+          case 'motion_turnright':
+            const degreesRight = getInputValue(block.inputs.INPUT_0);
+            turnSprite(degreesRight);
+            break;
+          case 'motion_turnleft':
+            const degreesLeft = getInputValue(block.inputs.INPUT_0);
+            turnSprite(-degreesLeft);
+            break;
+          case 'motion_pointindirection':
+            const direction = getInputValue(block.inputs.INPUT_0);
+            pointInDirection(direction);
+            break;
+          case 'motion_gotoxy':
+            const x = getInputValue(block.inputs.INPUT_0);
+            const y = getInputValue(block.inputs.INPUT_1);
+            goToXY(x, y);
+            break;
+          case 'motion_changexby':
+            const dx = getInputValue(block.inputs.INPUT_0);
+            changeX(dx);
+            break;
+          case 'motion_setx':
+            const newX = getInputValue(block.inputs.INPUT_0);
+            setX(newX);
+            break;
+          case 'motion_changeyby':
+            const dy = getInputValue(block.inputs.INPUT_0);
+            changeY(dy);
+            break;
+          case 'motion_sety':
+            const newY = getInputValue(block.inputs.INPUT_0);
+            setY(newY);
+            break;
+          case 'looks_sayforsecs':
+            const message = getInputValue(block.inputs.INPUT_0);
+            const duration = getInputValue(block.inputs.INPUT_1);
+            sayForSeconds(message, duration);
+            break;
+          case 'looks_changesizeby':
+            const sizeChange = getInputValue(block.inputs.INPUT_0);
+            changeSpriteSize(sizeChange);
+            break;
+          case 'looks_setsizeto':
+            const newSize = getInputValue(block.inputs.INPUT_0);
+            setSpriteSize(newSize);
+            break;
+          case 'sound_playuntildone':
+            const sound = block.fields.FIELD_0.value;
+            playSound(sound);
+            break;
+          case 'sound_stopallsounds':
+            stopAllSounds();
+            break;
+          case 'pen_clear':
+            clearStage();
+            break;
+          case 'pen_pendown':
+            selectedSprite.penDown = true;
+            break;
+          case 'pen_penup':
+            selectedSprite.penDown = false;
+            break;
+          case 'pen_setcolor':
+            const color = getInputValue(block.inputs.INPUT_0);
+            selectedSprite.penColor = color;
+            break;
+          case 'pen_changesize':
+            const sizeIncrease = getInputValue(block.inputs.INPUT_0);
+            selectedSprite.penSize += sizeIncrease;
+            break;
+          case 'pen_setsize':
+            const newPenSize = getInputValue(block.inputs.INPUT_0);
+            selectedSprite.penSize = newPenSize;
+            break;
+          case 'control_wait':
+            const waitSeconds = getInputValue(block.inputs.INPUT_0);
+            wait(waitSeconds);
+            break;
+          case 'control_repeat':
+            const times = getInputValue(block.inputs.INPUT_0);
+            // Implement repeat logic here
+            break;
+          case 'sensing_askandwait':
+            const question = getInputValue(block.inputs.INPUT_0);
+            askAndWait(question);
+            break;
+          case 'sensing_mousex':
+            return getMouseX();
+          case 'sensing_mousey':
+            return getMouseY();
+          case 'sensing_touchingobject':
+            const touchingObject = block.fields.FIELD_0.value;
+            return isTouchingObject(touchingObject);
+          case 'sensing_distanceto':
+            const distanceToObject = block.fields.FIELD_0.value;
+            return getDistanceTo(distanceToObject);
+          case 'operator_add':
+            const addend1 = getInputValue(block.inputs.INPUT_0);
+            const addend2 = getInputValue(block.inputs.INPUT_1);
+            return addend1 + addend2;
+          case 'operator_subtract':
+            const minuend = getInputValue(block.inputs.INPUT_0);
+            const subtrahend = getInputValue(block.inputs.INPUT_1);
+            return minuend - subtrahend;
+          case 'operator_multiply':
+            const factor1 = getInputValue(block.inputs.INPUT_0);
+            const factor2 = getInputValue(block.inputs.INPUT_1);
+            return factor1 * factor2;
+          case 'operator_divide':
+            const dividend = getInputValue(block.inputs.INPUT_0);
+            const divisor = getInputValue(block.inputs.INPUT_1);
+            return dividend / divisor;
+          case 'operator_random':
+            const from = getInputValue(block.inputs.INPUT_0);
+            const to = getInputValue(block.inputs.INPUT_1);
+            return Math.floor(Math.random() * (to - from + 1)) + from;
+          case 'data_setvariableto':
+            const varName = getInputValue(block.inputs.INPUT_0);
+            const varValue = getInputValue(block.inputs.INPUT_1);
+            setVariable(varName, varValue);
+            break;
+          case 'data_changevariableby':
+            const changeVarName = getInputValue(block.inputs.INPUT_0);
+            const changeValue = getInputValue(block.inputs.INPUT_1);
+            changeVariableBy(changeVarName, changeValue);
+            break;
+          case 'data_showvariable':
+            const showVarName = getInputValue(block.inputs.INPUT_0);
+            showVariable(showVarName);
+            break;
+          case 'data_hidevariable':
+            const hideVarName = getInputValue(block.inputs.INPUT_0);
+            hideVariable(hideVarName);
+            break;
+          default:
+            console.log('Unknown block type:', block.opcode);
+        }
+      }
+
+      function getInputValue(input) {
+        if (input.block) {
+          return executeBlock(input.block);
+        }
+        return parseFloat(input.value) || input.value;
+      }
+
+      function moveSprite(steps) {
+        const radians = selectedSprite.direction * Math.PI / 180;
+        selectedSprite.x += steps * Math.cos(radians);
+        selectedSprite.y += steps * Math.sin(radians);
+        updateSpritePosition(selectedSprite);
+      }
+
+      function turnSprite(degrees) {
+        selectedSprite.direction += degrees;
+        selectedSprite.direction %= 360;
+        if (selectedSprite.direction < 0) selectedSprite.direction += 360;
+        updateSpriteRotation(selectedSprite);
+      }
+
+      function pointInDirection(direction) {
+        selectedSprite.direction = direction;
+        updateSpriteRotation(selectedSprite);
+      }
+
+      function goToXY(x, y) {
+        selectedSprite.x = x;
+        selectedSprite.y = y;
+        updateSpritePosition(selectedSprite);
+      }
+
+      function changeX(dx) {
+        selectedSprite.x += dx;
+        updateSpritePosition(selectedSprite);
+      }
+
+      function setX(x) {
+        selectedSprite.x = x;
+        updateSpritePosition(selectedSprite);
+      }
+
+      function changeY(dy) {
+        selectedSprite.y += dy;
+        updateSpritePosition(selectedSprite);
+      }
+
+      function setY(y) {
+        selectedSprite.y = y;
+        updateSpritePosition(selectedSprite);
+      }
+
+      function updateSpriteRotation(spriteData) {
+        spriteData.element.style.transform = `translate(-50%, -50%) rotate(${-spriteData.direction}deg)`;
+      }
+
+      function sayForSeconds(message, duration) {
+        selectedSprite.speechBubble.textContent = message;
+        selectedSprite.speechBubble.style.display = 'block';
+        setTimeout(() => {
+          selectedSprite.speechBubble.style.display = 'none';
+        }, duration * 1000);
+      }
+
+      function changeSpriteSize(change) {
+        selectedSprite.size += change;
+        setSpriteSize(selectedSprite.size);
+      }
+
+      function setSpriteSize(size) {
+        selectedSprite.size = size;
+        selectedSprite.element.style.width = `${size / 2}px`;
+        selectedSprite.element.style.height = `${size / 2}px`;
+      }
+
+      function playSound(sound) {
+        console.log(`Playing sound: ${sound}`);
+      }
+
+      function stopAllSounds() {
+        console.log('Stopping all sounds');
+      }
+
+      function clearStage() {
+        // Clear any drawings on the stage
+        console.log('Clearing stage');
+      }
+
+      function wait(seconds) {
+        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+      }
+
+      function askAndWait(question) {
+        const answer = prompt(question);
+        console.log(`User answered: ${answer}`);
+      }
+
+      function getMouseX() {
+        // This is a placeholder. In a real implementation, you'd track the mouse position.
+        return Math.floor(Math.random() * stage.clientWidth);
+      }
+
+      function getMouseY() {
+        // This is a placeholder. In a real implementation, you'd track the mouse position.
+        return Math.floor(Math.random() * stage.clientHeight);
+      }
+
+      function isTouchingObject(object) {
+        // This is a placeholder. In a real implementation, you'd check for collisions.
+        return Math.random() < 0.5;
+      }
+
+      function getDistanceTo(object) {
+        // This is a placeholder. In a real implementation, you'd calculate the actual distance.
+        return Math.floor(Math.random() * 100);
+      }
+
+      function setVariable(name, value) {
+        if (selectedSprite.variables.hasOwnProperty(name)) {
+          selectedSprite.variables[name] = value;
+        } else {
+          globalVariables[name] = value;
+        }
+      }
+
+      function changeVariableBy(name, value) {
+        if (selectedSprite.variables.hasOwnProperty(name)) {
+          selectedSprite.variables[name] += value;
+        } else if (globalVariables.hasOwnProperty(name)) {
+          globalVariables[name] += value;
+        } else {
+          globalVariables[name] = value;
+        }
+      }
+
+      function showVariable(name) {
+window.alert("In progress")
+        // In a real implementation, you'd create a visual representation of the variable on the stage
+      }
+
+      function hideVariable(name) {
+window.alert("In progress!")
+        // In a real implementation, you'd remove the visual representation of the variable from the stage
+      }
+
+      // Create initial sprite
+      createSprite(240, 180);
+    });
+  </script>
+</body></html>
